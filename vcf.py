@@ -22,11 +22,11 @@ for index, row in df.iterrows():
 
     # Add Formatted Name
     vcard.add('fn')
-    vcard.fn.value = row['Name']
+    vcard.fn.value = str(row['Name'])
 
     # Phone #
     vcard.add('tel')
-    vcard.tel.value = row['Phone Number']
+    vcard.tel.value = str(row['Phone Number'])
     vcard.tel.type_param = 'CELL'
 
     # Email
@@ -35,7 +35,8 @@ for index, row in df.iterrows():
     vcard.email.type_param = 'INTERNET'
 
     # Add Birthday, convert to "YYYY-MM-DD" from "dd-MMM"
-    # Year N/A -> "2000" as placeholder. Just need Calendar to recognize date.
+    # Year N/A -> "2000" as placeholder. Just need Calendar to recognize date. Maybe don't hard code this, oops
+    # Maybe add a try/except to catch errors for NaN
     if pd.notnull(row['Birthday']):
         birthday = pd.to_datetime(row['Birthday'], format='%d-%b', errors='coerce')
         vcard.add('bday')
