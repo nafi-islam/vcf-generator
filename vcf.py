@@ -1,5 +1,6 @@
 import pandas as pd
 import vobject
+from tqdm import tqdm
 
 # Access the Excel File
 df = pd.read_excel('contacts.xlsx')
@@ -7,8 +8,8 @@ df = pd.read_excel('contacts.xlsx')
 # Initialize an empty string to hold all vCard information
 vcards = ""
 
-# Iterate over the rows in the DataFrame
-for index, row in df.iterrows():
+# Iterate over the rows in the DataFrame with tqdm for progress bar
+for index, row in tqdm(df.iterrows(), total=len(df), desc="Generating vCards"):
     # Split the name into first and last name
     names = row['Name'].split()
     first_name = names[0]
@@ -36,11 +37,11 @@ for index, row in df.iterrows():
 
     # Add Birthday, convert to "YYYY-MM-DD" from "dd-MMM"
     # Year N/A -> "2000" as placeholder. Just need Calendar to recognize date. Maybe don't hard code this, oops
-    # Maybe add a try/except to catch errors for NaN
     if pd.notnull(row['Birthday']):
         birthday = pd.to_datetime(row['Birthday'], format='%d-%b', errors='coerce')
-        vcard.add('bday')
-        vcard.bday.value = birthday.strftime('2000-%m-%d')
+        if pd.notnull(birthday):
+            vcard.add('bday')
+            vcard.bday.value = birthday.strftime('2000-%m-%d')
 
     # Append vCard to vcards string
     vcards += vcard.serialize()

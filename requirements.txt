@@ -1,0 +1,4 @@
+pandas
+vobject
+tqdm
+openpyxl
