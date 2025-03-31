@@ -12,6 +12,28 @@ This is a fairly straight forward process. The script takes an Excel file in and
 
 Whenever I hear the term automate, I immediately jump to Python. Python is one of my favorite languages with a ton of developer support. In this project, I used Pandas because it allows me to directly manipulate Excel files out of the box. Also, the flexibility that Pandas offers such as, filtering data or handling missing values, makes my life much easier when writing code.
 
-## What's next?
+## 🔧 Prerequisites
 
-- I have tested the VCF generator locally and it works for a live audience! It'd be fun to release this to the public on some sort of web application which could be the next phase for this project 👀
+Make sure you have Python 3.x installed. You’ll also need to install the Python packages found in `requirements.txt`.
+
+## 💻 Installation
+
+1. Clone this repo or download the script.
+2. Install the dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Prepare your contacts.xlsx file with the following columns:
+
+- Name
+- Phone Number
+- Email
+- Birthday (format dd-MM)
+
+4. Run the script:
+
+```bash
+python3 vcf.py
+```
