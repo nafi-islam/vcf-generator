@@ -26,14 +26,16 @@ for index, row in tqdm(df.iterrows(), total=len(df), desc="Generating vCards"):
     vcard.fn.value = str(row['Name'])
 
     # Phone #
-    vcard.add('tel')
-    vcard.tel.value = str(row['Phone Number'])
-    vcard.tel.type_param = 'CELL'
+    if pd.notnull(row['Phone Number']): # Check NaN
+        vcard.add('tel')
+        vcard.tel.value = str(row['Phone Number'])
+        vcard.tel.type_param = 'CELL'
 
     # Email
-    vcard.add('email')
-    vcard.email.value = row['Email']
-    vcard.email.type_param = 'INTERNET'
+    if pd.notnull(row['Email']): # Check NaN
+        vcard.add('email')
+        vcard.email.value = str(row['Email']).strip()
+        vcard.email.type_param = 'INTERNET'
 
     # Add Birthday, convert to "YYYY-MM-DD" from "dd-MMM"
     # Year N/A -> "2000" as placeholder. Just need Calendar to recognize date. Maybe don't hard code this, oops
