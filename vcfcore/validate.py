@@ -101,9 +101,18 @@ def _clean_phone(value, contact: Contact) -> str:
         number = phonenumbers.parse(raw, DEFAULT_REGION)
     except phonenumbers.NumberParseException:
         number = None
-    if number is None or not phonenumbers.is_valid_number(number):
-        contact.add(WARNING, f"Phone '{raw}' does not look like a valid number; kept as typed.", "phone")
+    # "possible" only checks the digit count for the country. "valid" also checks the
+    # number is assigned (no us area code starts with 1), which flags placeholder
+    # numbers like 123-456-7890 that people really do put in sheets
+    if number is None or not phonenumbers.is_possible_number(number):
+        contact.add(WARNING, f"Phone '{raw}' does not look like a phone number; kept as typed.", "phone")
         return raw
+    if phonenumbers.is_valid_number(number):
+        return phonenumbers.format_number(number, phonenumbers.PhoneNumberFormat.INTERNATIONAL)
+    national = str(number.national_number)
+    if number.country_code == 1 and len(national) == 10:
+        extension = f" ext. {number.extension}" if number.extension else ""
+        return f"+1 {national[:3]}-{national[3:6]}-{national[6:]}{extension}"
     return phonenumbers.format_number(number, phonenumbers.PhoneNumberFormat.INTERNATIONAL)
 
 

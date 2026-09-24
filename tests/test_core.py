@@ -182,3 +182,11 @@ def test_common_us_phone_formats(text):
 def test_extensions_and_international_phones(text, expected):
     [contact] = clean([record(phone=text)])
     assert contact.phone == expected
+
+
+@pytest.mark.parametrize("text", ["123-456-7890", "1234567890", "(123)-456-7890"])
+def test_placeholder_style_numbers_are_accepted(text):
+    # correct length for a us number, even though no real area code starts with 1
+    [contact] = clean([record(phone=text)])
+    assert contact.phone == "+1 123-456-7890"
+    assert contact.issues == []

@@ -11,7 +11,7 @@ You upload a spreadsheet (`.xlsx` or `.csv`) of your members and get back one co
 Before anything gets converted, you see every contact in a review table so you can spot check it:
 
 - **Things that need fixing** (a missing name or phone number, a birthday I can't read) are highlighted in red. You can fix them right in the table and hit Re-check, or untick the row to leave it out. Nothing gets dropped unless you decide to drop it.
-- **Warnings** (a phone number that looks off, a possible duplicate) show up in yellow, but your data is kept exactly as typed.
+- **Warnings** (a phone number with too few or too many digits, a possible duplicate) show up in yellow, but your data is kept exactly as typed.
 - **Small automatic fixes** (like Excel turning a phone number into `2125550123.0`) are noted so nothing changes behind your back.
 
 Your files are only read in memory and never stored anywhere.
