@@ -1,5 +1,7 @@
 # Contact Card Generator 📞
 
+Try it out: **https://contact-card-generator-nine.vercel.app**
+
 ## Inspiration
 
 Every semester, in multiple of my student organizations, we are constantly recruiting new members to be a part of great projects. One problem that new members run into is that they have no idea who is who in our org. group chat. It's a major hassle to save each contact, one by one.
