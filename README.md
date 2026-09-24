@@ -1,6 +1,6 @@
 # Contact Card Generator 📞
 
-Try it out: **https://contact-card-generator-nine.vercel.app**
+Try it out: **https://nafi-contact-card-generator.vercel.app**
 
 ## Inspiration
 
