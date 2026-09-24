@@ -7,7 +7,7 @@
   <title>{% block title %}VCF Generator{% endblock %}</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
   <style>
-    main.container { padding-top: 1.5rem; }
+    main { padding-top: 1.5rem; }
     .muted { color: var(--pico-muted-color); }
     .small { font-size: 0.85rem; }
 
@@ -15,14 +15,17 @@
     table.review { font-size: 0.9rem; }
     table.review td, table.review th { padding: 0.35rem 0.4rem; vertical-align: top; white-space: nowrap; }
     table.review input.cell {
-      margin: 0; padding: 0.2rem 0.35rem; height: auto; min-width: 7rem;
+      margin: 0; padding: 0.2rem 0.35rem; height: auto; width: 7em;
       font-size: inherit; background: transparent; border-color: transparent;
     }
+    table.review input[name=phone] { width: 9em; }
+    table.review input[name=email] { width: 14em; }
     table.review input.cell:hover, table.review input.cell:focus { border-color: var(--pico-form-element-border-color); }
     table.review input.cell.error { border-color: var(--pico-del-color); }
     table.review input.cell.warning { border-color: #d49a00; }
     table.review input[type=checkbox] { margin: 0.25rem 0 0; }
-    table.review td.notes { white-space: normal; min-width: 16rem; }
+    table.review td.notes { white-space: normal; min-width: 13em; }
+    main.container-fluid { max-width: 110rem; padding-left: 1.5rem; padding-right: 1.5rem; }
     table.review ul { margin: 0; padding-left: 1rem; }
     table.review li { list-style: disc; margin: 0; }
     tr.status-error > td { background: color-mix(in srgb, var(--pico-del-color) 10%, transparent); }
@@ -37,7 +40,8 @@
   </style>
 </head>
 <body>
-  <main class="container">
+  {# pages can widen the layout by overriding this block, e.g. the review table #}
+  <main class="{% block container %}container{% endblock %}">
     {# child templates fill this block; everything outside it is shared by every page #}
     {% block content %}{% endblock %}
   </main>

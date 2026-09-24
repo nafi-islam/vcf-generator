@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Review contacts - VCF Generator{% endblock %}
+{% block container %}container-fluid{% endblock %}
 
 {% block content %}
 <hgroup>
@@ -38,7 +39,7 @@
       Download <span id="count">{{ included_count }}</span> contacts
     </button>
     <button type="submit" formaction="{{ url_for('converter.review') }}" class="secondary">Re-check</button>
-    <a href="{{ url_for('converter.index') }}" role="button" class="outline secondary">Upload a different file</a>
+    <a href="{{ url_for('converter.index') }}">Upload a different file</a>
     <label class="small"><input type="checkbox" id="only-issues" role="switch"> Only rows with notes</label>
   </div>
 
