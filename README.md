@@ -6,63 +6,68 @@ Every semester, in multiple of my student organizations, we are constantly recru
 
 ## What It Does
 
-Upload a spreadsheet (`.xlsx` or `.csv`) of contacts and get back one `.vcf` file that anyone can open on their phone to save every contact at once.
+You upload a spreadsheet (`.xlsx` or `.csv`) of your members and get back one contact file (`.vcf`) that anyone can open on their phone to save everyone at once. The sheet needs a `Name` and `Phone Number` column, and it can also have `Email` and `Birthday`. Any other fields such as Instagram or "Fun Facts" will be ignored. New members who need to add 20+ new contacts will definitely benefit from this and the same goes for current members who only need to add a couple contacts. Make life easier for everyone, why not!
 
-Before anything is converted, the app shows every contact in a review table:
+Before anything gets converted, you see every contact in a review table so you can spot check it:
 
-- **Problems that block the download** (a blank name or phone number, a birthday it cannot read) are highlighted. Fix them right in the table and click Re-check, or untick the row to leave it out. Nothing is dropped unless you choose to drop it.
-- **Warnings** (a phone that does not look valid, a possible duplicate) are shown but kept as typed.
-- **Automatic fixes** (a phone Excel stored as `2125550123.0`) are noted.
+- **Things that need fixing** (a missing name or phone number, a birthday I can't read) are highlighted in red. You can fix them right in the table and hit Re-check, or untick the row to leave it out. Nothing gets dropped unless you decide to drop it.
+- **Warnings** (a phone number that looks off, a possible duplicate) show up in yellow, but your data is kept exactly as typed.
+- **Small automatic fixes** (like Excel turning a phone number into `2125550123.0`) are noted so nothing changes behind your back.
 
-Files are read in memory and never stored.
+Your files are only read in memory and never stored anywhere.
 
 ### Combining files
 
-Under **Advanced** on the upload page, you can combine up to 10 files at once, mixing spreadsheets and existing `.vcf` files (for example, last semester's contact file plus this semester's sign-up sheet). Everything lands in one review table with each row's source file shown. A contact with the same phone or email as an earlier one starts out unticked as a likely duplicate, so the combined file has no repeats unless you choose to keep them.
+Every semester I end up with last semester's contact file plus a brand new sign-up sheet. Under **Advanced** on the upload page, you can combine up to 10 files at once, mixing spreadsheets and existing `.vcf` files. Everything shows up in one review table with the file each contact came from. If a contact has the same phone or email as one that already showed up, it starts out unticked as a likely duplicate, so the final file has no repeats unless you want them.
 
-From `.vcf` files, only the name, phone, email, and birthday are kept. When a card has more (an address, a photo, a second phone number), the review table notes what was not carried over.
+From `.vcf` files, I only keep the name, phone, email, and birthday. If a card has more than that (an address, a photo, a second phone number), the review table tells you what didn't come along.
 
 ### What the sheet needs
 
 | Column | Notes |
 | --- | --- |
-| `Name` (required) | Or separate `First Name` and `Last Name` columns. A single name is split into first word and the rest, like the original script. |
-| `Phone Number` (required) | Any format. Numbers without a country code are treated as US. |
+| `Name` (required) | Or separate `First Name` and `Last Name` columns. A single name is split into the first word and the rest, just like the original script. |
+| `Phone Number` (required) | Any format works: `123-456-7890`, `(123)-456-7890`, `123.456.7890`, `+1 123 456 7890`. No country code means US. |
 | `Email` | |
-| `Birthday` | With or without a year: `15-Mar`, `Mar 15`, `03/15/2002`, or an Excel date. |
+| `Birthday` | With or without a year: `July 15`, `15-Jul`, `7/15`, `7/15/2003`, or an Excel date. |
 
-Similar headers such as `Mobile`, `E-mail`, or `DOB` work too, and a title row above the header is fine. Other columns (Instagram, Fun Facts) are ignored. Templates are in [`public/`](public/).
+Similar headers like `Mobile`, `E-mail`, or `DOB` work too, and it's fine if there's a title row above the headers. There are templates in [`public/`](public/) if you want a starting point.
 
 ## Development Thought Process
 
-Whenever I hear the term automate, I immediately jump to Python. The first version was a pandas script. Turning it into a web app, the conversion logic moved into a small package with no web code in it, and a Flask app sits on top:
+Whenever I hear the term automate, I immediately jump to Python. Python is one of my favorite languages with a ton of developer support. The first version was a single script that used Pandas to read the Excel file and write out the contact cards.
+
+For the web version I wanted to learn a Python web framework, and I went with Flask since it's lightweight and the app only needs a couple of pages. The original script's logic now lives in its own small package (`vcfcore`) with no web code in it, and Flask sits on top and just passes files in and contact cards out. That also means the command line version still works.
+
+I ended up swapping Pandas for Python's built-in `csv` module and `openpyxl`. Pandas' automatic type guessing is what turned phone numbers into floats, and it's a pretty heavy dependency for something that runs as a serverless function.
+
+The app doesn't keep anything between requests. The review page holds the contacts in its own form, and every time you hit Re-check or Download, the server checks everything again.
 
 ```
-vcfcore/            conversion logic, no Flask imports
-  reader.py         .csv/.xlsx -> rows of cells (handles encodings, Excel dates, numeric phones)
+vcfcore/            the conversion logic, no Flask in here
+  reader.py         .csv/.xlsx -> rows of cells (encodings, Excel dates, numeric phones)
   columns.py        finds the header row and matches column names
-  validate.py       cleans each field and records per-row issues
+  validate.py       cleans each field and flags problems per row
   vcards.py         reads existing .vcf files (iPhone, Google, vCard 2.1-4.0)
-  builder.py        writes vCard 3.0 with vobject (the original script's loop)
-webapp/             Flask app
-  __init__.py       create_app(): config and error handlers
+  builder.py        writes the contact cards with vobject (the original script's loop)
+webapp/             the Flask app
+  __init__.py       create_app(): config and error pages
   routes.py         /, /review, /download
   templates/        Jinja pages, styled with Pico.css
 public/             static files (spreadsheet templates)
 app.py              entry point for `flask run` and Vercel
 vcf.py              command line version
-tests/              pytest, spreadsheets generated in code
+tests/              pytest
 ```
-
-pandas was replaced with the standard `csv` module and `openpyxl`: its automatic type guessing turned phone numbers into floats, and it is a heavy dependency for a serverless function.
-
-The app keeps no state between requests. The review page holds the contacts in its own form, and every submit (Re-check or Download) is validated again on the server.
 
 ## 🔧 Prerequisites
 
-Python 3.10 or newer.
+Make sure you have Python 3.10 or newer installed.
 
 ## 💻 Installation
+
+1. Clone this repo.
+2. Set up a virtual environment and install the dependencies:
 
 ```bash
 python3 -m venv .venv
@@ -70,34 +75,32 @@ source .venv/bin/activate
 pip install -r requirements-dev.txt
 ```
 
-### Run the web app
+3. Run the web app, then open http://127.0.0.1:5000:
 
 ```bash
 flask run --debug
 ```
 
-Then open http://127.0.0.1:5000.
-
-### Run from the command line
+4. Or skip the browser and use the command line version. With no arguments it reads `contacts.xlsx` and writes `contacts.vcf`, same as always:
 
 ```bash
-python3 vcf.py                          # contacts.xlsx -> contacts.vcf
+python3 vcf.py
 python3 vcf.py bookclub.csv bookclub.vcf
 ```
 
-Rows with errors are skipped and listed, since there is no review step.
+There's no review step on the command line, so rows with problems are skipped and listed for you.
 
-### Run the tests
+5. Run the tests:
 
 ```bash
 pytest
 ```
 
-## Deploying
+## 🚀 Deploying
 
-The app deploys to Vercel with no extra configuration: Vercel finds the `app` object in `app.py` and serves `public/` from its CDN. Uploads are capped at 3 MB, under Vercel's 4.5 MB request limit.
+The app deploys to Vercel with no extra configuration. Vercel finds the `app` object in `app.py` and serves `public/` from its CDN. Uploads are capped at 3 MB, which keeps them under Vercel's 4.5 MB request limit.
 
 ## Notes
 
-- Birthdays without a year are written the way Apple Contacts exports them (`BDAY;X-APPLE-OMIT-YEAR=1604:1604-03-15`), so iPhones hide the year. Other apps may show 1604 as the year.
-- Keep real contact data out of the repo. `.gitignore` covers `contacts.xlsx`, `contacts.csv`, and `*.vcf`.
+- Birthdays without a year are saved the same way Apple Contacts does it (`BDAY;X-APPLE-OMIT-YEAR=1604:1604-03-15`), so iPhones hide the year. Some other apps might show 1604 as the year.
+- Keep real contact data out of the repo. The `.gitignore` already covers `contacts.xlsx`, `contacts.csv`, and `*.vcf`.
