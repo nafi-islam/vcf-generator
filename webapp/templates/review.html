@@ -4,6 +4,13 @@
 {% block container %}container-fluid{% endblock %}
 
 {% block content %}
+{# pico styles a nav with aria-label="breadcrumb" as a "Home > Review Contacts" trail #}
+<nav aria-label="breadcrumb">
+  <ul>
+    <li><a href="{{ url_for('converter.index') }}">Home</a></li>
+    <li>Review Contacts</li>
+  </ul>
+</nav>
 <hgroup>
   <h1>Review Contacts</h1>
   <p>
