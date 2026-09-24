@@ -70,6 +70,7 @@ def clean(records: list[dict]) -> list[Contact]:
 def _clean_one(record: dict) -> Contact:
     contact = Contact(
         row=int(record["row"]),
+        source=_text(record.get("source")),
         first=" ".join(_text(record.get("first")).split()),
         last=" ".join(_text(record.get("last")).split()),
         include=bool(record.get("include", True)),
@@ -84,6 +85,8 @@ def _clean_one(record: dict) -> Contact:
 
     contact.email = _clean_email(record.get("email"), contact)
     contact.birthday, contact.birthday_text = _clean_birthday(record.get("birthday"), contact)
+    for level, message, field in record.get("notes", []):  # e.g. fields a .vcf card had that we drop
+        contact.add(level, message, field)
     return contact
 
 
@@ -156,7 +159,8 @@ def format_birthday(value: date | MonthDay) -> str:
 
 
 def _flag_duplicates(contacts: list[Contact]) -> None:
-    seen: dict[tuple[str, str], int] = {}
+    several_files = len({c.source for c in contacts}) > 1
+    seen: dict[tuple[str, str], Contact] = {}
     for contact in contacts:
         keys = []
         if contact.phone:
@@ -164,10 +168,13 @@ def _flag_duplicates(contacts: list[Contact]) -> None:
         if contact.email:
             keys.append(("email", contact.email.lower()))
         for kind, key in keys:
-            if (kind, key) in seen:
-                contact.add(WARNING, f"Same {kind} as row {seen[(kind, key)]}; this may be a duplicate.", kind)
-            else:
-                seen[(kind, key)] = contact.row
+            earlier = seen.get((kind, key))
+            if earlier is None:
+                seen[(kind, key)] = contact
+            elif contact.duplicate_of is None:
+                place = f"{earlier.source} {earlier.where}" if several_files else earlier.where
+                contact.duplicate_of = place
+                contact.add(WARNING, f"Same {kind} as {place}; likely a duplicate.", kind)
 
 
 def _filled(value) -> bool:

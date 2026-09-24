@@ -3,7 +3,7 @@ from pathlib import Path
 
 from flask import Flask, render_template
 
-from vcfcore import MAX_ROWS
+from vcfcore import MAX_FILES, MAX_ROWS
 
 PUBLIC_DIR = Path(__file__).resolve().parent.parent / "public"
 MAX_UPLOAD_MB = 3
@@ -27,8 +27,8 @@ def create_app(test_config: dict | None = None) -> Flask:
         # code runs. vercel's own limit is 4.5 MB, so stay under it
         MAX_CONTENT_LENGTH=MAX_UPLOAD_MB * 1024 * 1024,
         # werkzeug (the library under flask that parses requests) refuses forms with
-        # more than 1000 fields by default. the review table sends 7 fields per row
-        MAX_FORM_PARTS=MAX_ROWS * 7 + 100,
+        # more than 1000 fields by default. the review table sends 8 fields per row
+        MAX_FORM_PARTS=MAX_ROWS * 8 + 100,
     )
     if test_config:
         app.config.update(test_config)
@@ -45,6 +45,7 @@ def create_app(test_config: dict | None = None) -> Flask:
         return {
             "max_upload_mb": MAX_UPLOAD_MB,
             "max_rows": MAX_ROWS,
+            "max_files": MAX_FILES,
             "birthday_examples": birthday_examples(date.today()),
         }
 

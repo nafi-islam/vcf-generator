@@ -9,9 +9,9 @@
 
 {% if error %}
   <article>
-    <strong class="level-error">This file could not be used.</strong>
+    <strong class="level-error">{{ 'These files' if advanced else 'This file' }} could not be used.</strong>
     <p>{{ error }}</p>
-    <p class="small muted">Fix the spreadsheet and upload it again.</p>
+    <p class="small muted">Fix the file and upload it again.</p>
   </article>
 {% endif %}
 
@@ -27,6 +27,24 @@
     Nothing is converted yet. You will see every contact and any problems first.
     Files are read in memory and never stored.
   </p>
+
+  {# <details> is a built-in html toggle; "open" shows it expanded, e.g. after an error #}
+  <details {% if advanced %}open{% endif %}>
+    <summary>Advanced: combine several files</summary>
+    <form action="{{ url_for('converter.review') }}" method="post" enctype="multipart/form-data">
+      {# tells the route which form was used, so an error can reopen this section #}
+      <input type="hidden" name="mode" value="combine">
+      <label for="files">Spreadsheets and contact files (.xlsx, .csv, .vcf)</label>
+      {# "multiple" lets the file picker select several files; flask receives them all under "file" #}
+      <input type="file" id="files" name="file" accept=".xlsx,.csv,.vcf" multiple required>
+      <button type="submit" class="secondary">Combine and Review</button>
+    </form>
+    <ul class="small muted">
+      <li>Select up to {{ max_files }} files at once, mixing spreadsheets and .vcf files. Hold Ctrl or Cmd to pick several.</li>
+      <li>A contact with the same phone or email as an earlier one is left out as a likely duplicate. You can add it back on the review page.</li>
+      <li>From .vcf files, only the name, phone, email, and birthday are kept. Addresses, photos, and notes are not carried over.</li>
+    </ul>
+  </details>
 </article>
 
 <section>

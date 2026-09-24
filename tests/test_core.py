@@ -53,7 +53,7 @@ def test_title_row_above_header_and_header_aliases():
 
 
 @pytest.mark.parametrize("filename, data, message", [
-    ("c.txt", b"x", "Please upload a .csv or .xlsx"),
+    ("c.txt", b"x", "Please upload a .csv, .xlsx, or .vcf"),
     ("c.xls", b"x", "Old .xls files"),
     ("c.csv", b"", "empty"),
     ("c.xlsx", b"not a zip", "could not be opened"),

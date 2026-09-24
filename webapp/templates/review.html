@@ -7,7 +7,8 @@
 <hgroup>
   <h1>Review Contacts</h1>
   <p>
-    {{ contacts|length }} contact{{ '' if contacts|length == 1 else 's' }} found{% if source %} in <strong>{{ source }}</strong>{% endif %}.
+    {{ contacts|length }} contact{{ '' if contacts|length == 1 else 's' }} found
+    {%- if file_count > 1 %} in {{ file_count }} files{% elif source %} in <strong>{{ source }}</strong>{% endif %}.
     {{ issue_count }} row{{ '' if issue_count == 1 else 's' }} with notes.
   </p>
 </hgroup>
@@ -22,6 +23,14 @@
   </article>
 {% elif not included_count %}
   <article><strong class="level-error">No contacts are selected.</strong> Tick <em>Include</em> on at least one row.</article>
+{% endif %}
+
+{% if left_out_duplicates %}
+  <p class="small">
+    <strong>{{ left_out_duplicates }} likely duplicate{{ '' if left_out_duplicates == 1 else 's' }}</strong>
+    (same phone or email as an earlier contact) {{ 'was' if left_out_duplicates == 1 else 'were' }} left out.
+    Tick <em>Include</em> to keep {{ 'it' if left_out_duplicates == 1 else 'any of them' }}.
+  </p>
 {% endif %}
 
 {% if ignored %}
@@ -47,18 +56,23 @@
     <table class="review striped" id="table">
       <thead>
         <tr>
-          <th>Include</th><th>Row</th><th>First</th><th>Last</th><th>Phone</th><th>Email</th><th>Birthday</th><th>Notes</th>
+          <th>Include</th><th>{{ 'Source' if file_count > 1 else 'Row' }}</th><th>First</th><th>Last</th><th>Phone</th><th>Email</th><th>Birthday</th><th>Notes</th>
         </tr>
       </thead>
       <tbody>
       {% for c in contacts %}
         {# data-* attributes are read by the small script below #}
         <tr class="status-{{ c.status }}{% if not c.include %} excluded{% endif %}" data-error="{{ 1 if c.has_errors else 0 }}">
-          <td><input type="checkbox" name="include" value="{{ c.row }}" {% if c.include %}checked{% endif %} aria-label="Include row {{ c.row }}"></td>
-          <td>{{ c.row }}<input type="hidden" name="row" value="{{ c.row }}"></td>
+          {# the include box's value is the row's position on the page, since two combined files can both have a row 2 #}
+          <td><input type="checkbox" name="include" value="{{ loop.index0 }}" {% if c.include %}checked{% endif %} aria-label="Include {{ c.source }} {{ c.where }}"></td>
+          <td>
+            {% if file_count > 1 %}<span class="small muted source">{{ c.source }}</span><br>{{ c.where }}{% else %}{{ c.row }}{% endif %}
+            <input type="hidden" name="row" value="{{ c.row }}">
+            <input type="hidden" name="origin" value="{{ c.source }}">
+          </td>
           {% for name, value in [('first', c.first), ('last', c.last), ('phone', c.phone), ('email', c.email), ('birthday', c.birthday_text)] %}
             {% set level = c.field_level(name) %}
-            <td><input class="cell {{ level or '' }}" name="{{ name }}" value="{{ value }}" aria-label="{{ name }} for row {{ c.row }}"
+            <td><input class="cell {{ level or '' }}" name="{{ name }}" value="{{ value }}" aria-label="{{ name }} for {{ c.where }}"
                        {% if level == 'error' %}aria-invalid="true"{% endif %}></td>
           {% endfor %}
           <td class="notes small">

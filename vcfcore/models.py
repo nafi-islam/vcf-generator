@@ -33,6 +33,7 @@ class Contact:
     """
 
     row: int
+    source: str = ""  # the file this contact came from
     first: str = ""
     last: str = ""
     phone: str = ""
@@ -40,7 +41,14 @@ class Contact:
     birthday_text: str = ""
     birthday: date | MonthDay | None = None
     include: bool = True
+    duplicate_of: str | None = None  # where the earlier copy is, e.g. "row 4"
     issues: list[Issue] = field(default_factory=list)
+
+    @property
+    def where(self) -> str:
+        """"row 4" for a spreadsheet, "card 4" for a .vcf file."""
+        kind = "card" if self.source.lower().endswith(".vcf") else "row"
+        return f"{kind} {self.row}"
 
     @property
     def full_name(self) -> str:

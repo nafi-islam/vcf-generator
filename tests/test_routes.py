@@ -1,3 +1,4 @@
+import io
 from datetime import date, timedelta
 
 import pytest
@@ -21,12 +22,16 @@ def upload(client, data, filename):
 
 
 def table_form(rows, include=None, source="club.xlsx"):
-    """Build the fields the review page posts back. rows are (row, first, last, phone, email, birthday)."""
+    """Build the fields the review page posts back.
+
+    rows are (row, first, last, phone, email, birthday); include lists row positions, default all.
+    """
     form = {name: [] for name in ("row", "first", "last", "phone", "email", "birthday")}
     for row in rows:
         for name, value in zip(form, row):
             form[name].append(str(value))
-    form["include"] = [str(r[0]) for r in rows] if include is None else [str(r) for r in include]
+    form["origin"] = [source] * len(rows)
+    form["include"] = [str(i) for i in (range(len(rows)) if include is None else include)]
     form["source"] = source
     return form
 
@@ -94,7 +99,7 @@ def test_download_refuses_rows_with_errors(client):
 def test_download_skips_rows_the_user_unticked(client):
     form = table_form(
         [(2, "", "", "2125550101", "", ""), (3, "Sam", "Lee", "2125550102", "", "Mar 15")],
-        include=[3],
+        include=[1],
         source="Book Club (Fall).xlsx",
     )
     response = client.post("/download", data=form)
@@ -134,3 +139,35 @@ def test_upload_page_shows_todays_birthday_examples(client):
     page = client.get("/").get_data(as_text=True)
     for example in birthday_examples(date.today()):
         assert f">{example}</code>" in page
+
+
+def test_combine_several_files(client):
+    from .helpers import VCARDS
+    sheet = make_csv([["Name", "Phone"], ["Jordan Rivera", "212-555-0101"], ["Taylor Brooks", "212-555-0106"]])
+    response = client.post("/review", data={
+        "mode": "combine",
+        "file": [(sheet, "club.csv"), (io.BytesIO(VCARDS.encode()), "phone.vcf")],
+    }, content_type="multipart/form-data")
+    page = response.get_data(as_text=True)
+    assert response.status_code == 200
+    assert "6 contacts found in 2 files" in page
+    assert "<th>Source</th>" in page
+    assert "1 likely duplicate</strong>" in page
+    assert 'name="origin" value="phone.vcf"' in page
+
+
+def test_combined_download_keeps_file_origins_and_name(client):
+    form = table_form([(2, "Sam", "Lee", "2125550101", "", ""), (2, "Ana", "Diaz", "2125550102", "", "")], source="combined contacts")
+    form["origin"] = ["a.csv", "b.vcf"]
+    response = client.post("/download", data=form)
+    assert response.headers["Content-Disposition"] == 'attachment; filename="combined-contacts.vcf"'
+    assert response.get_data(as_text=True).count("BEGIN:VCARD") == 2
+
+
+def test_combine_error_reopens_advanced_section(client):
+    response = client.post("/review", data={
+        "mode": "combine", "file": [(make_csv([["Name"], ["Sam"]]), "a.csv"), (make_csv([["Name"], ["Ana"]]), "b.csv")],
+    }, content_type="multipart/form-data")
+    assert response.status_code == 422
+    assert b"a.csv: Could not find a Phone Number column" in response.data
+    assert b"<details open>" in response.data

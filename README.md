@@ -16,6 +16,12 @@ Before anything is converted, the app shows every contact in a review table:
 
 Files are read in memory and never stored.
 
+### Combining files
+
+Under **Advanced** on the upload page, you can combine up to 10 files at once, mixing spreadsheets and existing `.vcf` files (for example, last semester's contact file plus this semester's sign-up sheet). Everything lands in one review table with each row's source file shown. A contact with the same phone or email as an earlier one starts out unticked as a likely duplicate, so the combined file has no repeats unless you choose to keep them.
+
+From `.vcf` files, only the name, phone, email, and birthday are kept. When a card has more (an address, a photo, a second phone number), the review table notes what was not carried over.
+
 ### What the sheet needs
 
 | Column | Notes |
@@ -36,6 +42,7 @@ vcfcore/            conversion logic, no Flask imports
   reader.py         .csv/.xlsx -> rows of cells (handles encodings, Excel dates, numeric phones)
   columns.py        finds the header row and matches column names
   validate.py       cleans each field and records per-row issues
+  vcards.py         reads existing .vcf files (iPhone, Google, vCard 2.1-4.0)
   builder.py        writes vCard 3.0 with vobject (the original script's loop)
 webapp/             Flask app
   __init__.py       create_app(): config and error handlers

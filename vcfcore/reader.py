@@ -33,7 +33,7 @@ def read_table(stream, filename: str) -> Rows:
     elif name.endswith(".xls"):
         raise TableError("Old .xls files are not supported. In Excel, use Save As and choose .xlsx or .csv.")
     else:
-        raise TableError("Please upload a .csv or .xlsx file.")
+        raise TableError("Please upload a .csv, .xlsx, or .vcf file.")
 
     rows = [(number, cells) for number, cells in rows if any(_filled(c) for c in cells)]
     if not rows:
@@ -83,7 +83,7 @@ def _xlsx_cell(cell) -> Cell:
 
 
 def _read_csv(data: bytes) -> Rows:
-    text = _decode(data)
+    text = decode(data)
     try:
         dialect = csv.Sniffer().sniff(text[:4096], delimiters=",;\t")
     except csv.Error:
@@ -97,7 +97,7 @@ def _read_csv(data: bytes) -> Rows:
     return rows
 
 
-def _decode(data: bytes) -> str:
+def decode(data: bytes) -> str:
     # utf-8-sig also strips the invisible marker Excel puts at the start of "CSV UTF-8" files
     for encoding in ("utf-8-sig", "cp1252"):
         try:
