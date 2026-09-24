@@ -1,0 +1,13 @@
+# local environment
+.venv/
+__pycache__/
+.pytest_cache/
+.vercel/
+.env
+
+# real contact data never belongs in the repo
+*.vcf
+contacts.xlsx
+contacts.csv
+
+.DS_Store

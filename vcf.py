@@ -1,53 +1,44 @@
-import pandas as pd
-import vobject
-from tqdm import tqdm
+"""Command line version: python3 vcf.py [input.xlsx|input.csv] [output.vcf]
 
-# Access the Excel File
-df = pd.read_excel('contacts.xlsx')
+With no arguments it reads contacts.xlsx and writes contacts.vcf, like the original script.
+Rows with errors are skipped and reported, since there is no review page here.
+"""
 
-# Initialize an empty string to hold all vCard information
-vcards = ""
+import argparse
+import sys
+from pathlib import Path
 
-# Iterate over the rows in the DataFrame with tqdm for progress bar
-for index, row in tqdm(df.iterrows(), total=len(df), desc="Generating vCards"):
-    # Split the name into first and last name
-    names = row['Name'].split()
-    first_name = names[0]
-    last_name = ' '.join(names[1:]) if len(names) > 1 else ''
+from vcfcore import ERROR, TableError, build_vcf, load_contacts
 
-    # Init VCF
-    vcard = vobject.vCard()
 
-    vcard.add('n')
-    vcard.n.value = vobject.vcard.Name(family=last_name, given=first_name)
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Convert a contacts spreadsheet into a single .vcf file.")
+    parser.add_argument("input", nargs="?", default="contacts.xlsx", help="a .xlsx or .csv file (default: contacts.xlsx)")
+    parser.add_argument("output", nargs="?", default="contacts.vcf", help="where to write the vCards (default: contacts.vcf)")
+    args = parser.parse_args()
 
-    # Add Formatted Name
-    vcard.add('fn')
-    vcard.fn.value = str(row['Name'])
+    path = Path(args.input)
+    try:
+        with path.open("rb") as f:
+            contacts, _ = load_contacts(f, path.name)
+    except FileNotFoundError:
+        print(f"File not found: {path}", file=sys.stderr)
+        return 1
+    except TableError as exc:
+        print(f"Cannot convert {path}: {exc}", file=sys.stderr)
+        return 1
 
-    # Phone #
-    if pd.notnull(row['Phone Number']): # Check NaN
-        vcard.add('tel')
-        vcard.tel.value = str(row['Phone Number'])
-        vcard.tel.type_param = 'CELL'
+    for contact in contacts:
+        for issue in contact.issues:
+            print(f"Row {contact.row} [{issue.level}] {issue.message}", file=sys.stderr)
 
-    # Email
-    if pd.notnull(row['Email']): # Check NaN
-        vcard.add('email')
-        vcard.email.value = str(row['Email']).strip()
-        vcard.email.type_param = 'INTERNET'
+    usable = [c for c in contacts if not c.has_errors]
+    Path(args.output).write_text(build_vcf(usable), encoding="utf-8")
 
-    # Add Birthday, convert to "YYYY-MM-DD" from "dd-MMM"
-    # Year N/A -> "2000" as placeholder. Just need Calendar to recognize date. Maybe don't hard code this, oops
-    if pd.notnull(row['Birthday']):
-        birthday = pd.to_datetime(row['Birthday'], format='%d-%b', errors='coerce')
-        if pd.notnull(birthday):
-            vcard.add('bday')
-            vcard.bday.value = birthday.strftime('2000-%m-%d')
+    skipped = len(contacts) - len(usable)
+    print(f"Wrote {len(usable)} contacts to {args.output}" + (f" ({skipped} rows with errors skipped)" if skipped else ""))
+    return 0
 
-    # Append vCard to vcards string
-    vcards += vcard.serialize()
 
-# Write all accumulated vCards to a single file
-with open('contacts.vcf', 'w') as f:
-    f.write(vcards)
+if __name__ == "__main__":
+    sys.exit(main())

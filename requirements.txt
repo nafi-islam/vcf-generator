@@ -1,4 +1,4 @@
-pandas
-vobject
-tqdm
-openpyxl
+flask~=3.1
+openpyxl~=3.1
+phonenumbers~=9.0
+vobject~=0.9.9
