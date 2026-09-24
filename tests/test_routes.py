@@ -35,6 +35,7 @@ def test_index_page(client):
     response = client.get("/")
     assert response.status_code == 200
     assert b'enctype="multipart/form-data"' in response.data
+    assert b'href="https://github.com/nafi-islam/vcf-generator"' in response.data
 
 
 def test_templates_are_served(client):
