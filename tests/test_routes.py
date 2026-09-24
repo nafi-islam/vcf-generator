@@ -171,3 +171,9 @@ def test_combine_error_reopens_advanced_section(client):
     assert response.status_code == 422
     assert b"a.csv: Could not find a Phone Number column" in response.data
     assert b"<details open>" in response.data
+
+
+def test_analytics_script_only_on_vercel(client, monkeypatch):
+    assert b"/_vercel/insights/script.js" not in client.get("/").data
+    monkeypatch.setenv("VERCEL", "1")
+    assert b"/_vercel/insights/script.js" in client.get("/").data

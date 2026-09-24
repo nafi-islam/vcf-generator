@@ -1,3 +1,4 @@
+import os
 from datetime import date
 from pathlib import Path
 
@@ -47,6 +48,8 @@ def create_app(test_config: dict | None = None) -> Flask:
             "max_rows": MAX_ROWS,
             "max_files": MAX_FILES,
             "birthday_examples": birthday_examples(date.today()),
+            # vercel sets VERCEL=1 on its servers; the analytics script only exists there
+            "vercel_analytics": os.environ.get("VERCEL") == "1",
         }
 
     # error handlers run when flask raises an http error instead of showing a bare error page

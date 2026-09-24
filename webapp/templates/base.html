@@ -68,5 +68,10 @@
     {# child templates fill this block; everything outside it is shared by every page #}
     {% block content %}{% endblock %}
   </main>
+  {% if vercel_analytics %}
+    {# vercel web analytics: counts page views; vercel serves this script once analytics is enabled for the project #}
+    <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+    <script defer src="/_vercel/insights/script.js"></script>
+  {% endif %}
 </body>
 </html>
