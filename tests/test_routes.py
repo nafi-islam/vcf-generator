@@ -46,6 +46,8 @@ def test_index_page(client):
 def test_templates_are_served(client):
     assert client.get("/contacts_template.csv").status_code == 200
     assert client.get("/contacts_template.xlsx").status_code == 200
+    assert client.get("/favicon.svg").status_code == 200
+    assert b'rel="icon" href="/favicon.svg"' in client.get("/").data
 
 
 def test_upload_shows_every_contact_before_converting(client):
