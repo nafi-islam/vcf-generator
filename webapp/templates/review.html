@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Review contacts - VCF Generator{% endblock %}
+
+{% block content %}
+<hgroup>
+  <h1>Review contacts</h1>
+  <p>
+    {{ contacts|length }} contact{{ '' if contacts|length == 1 else 's' }} found{% if source %} in <strong>{{ source }}</strong>{% endif %}.
+    {{ issue_count }} row{{ '' if issue_count == 1 else 's' }} with notes.
+  </p>
+</hgroup>
+
+{% if blocking_count %}
+  <article>
+    <strong class="level-error">{{ blocking_count }} row{{ '' if blocking_count == 1 else 's' }} need{{ 's' if blocking_count == 1 else '' }} fixing before download.</strong>
+    <p class="small">
+      Edit the red cells right in the table, or untick <em>Include</em> to leave a row out, then click
+      <strong>Re-check</strong>. You can also fix the spreadsheet and upload it again.
+    </p>
+  </article>
+{% elif not included_count %}
+  <article><strong class="level-error">No contacts are selected.</strong> Tick <em>Include</em> on at least one row.</article>
+{% endif %}
+
+{% if ignored %}
+  <p class="small muted">Ignored columns: {{ ignored|join(', ') }}</p>
+{% endif %}
+
+{# one form wraps the whole table. both buttons submit it; formaction picks the url #}
+<form method="post" id="review-form">
+  <input type="hidden" name="source" value="{{ source }}">
+  {% for name in ignored %}<input type="hidden" name="ignored" value="{{ name }}">{% endfor %}
+
+  <div class="actions">
+    <button type="submit" formaction="{{ url_for('converter.download') }}" id="download"
+            {% if blocking_count or not included_count %}disabled{% endif %}>
+      Download <span id="count">{{ included_count }}</span> contacts
+    </button>
+    <button type="submit" formaction="{{ url_for('converter.review') }}" class="secondary">Re-check</button>
+    <a href="{{ url_for('converter.index') }}" role="button" class="outline secondary">Upload a different file</a>
+    <label class="small"><input type="checkbox" id="only-issues" role="switch"> Only rows with notes</label>
+  </div>
+
+  <div class="overflow-auto">
+    <table class="review striped" id="table">
+      <thead>
+        <tr>
+          <th>Include</th><th>Row</th><th>First</th><th>Last</th><th>Phone</th><th>Email</th><th>Birthday</th><th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for c in contacts %}
+        {# data-* attributes are read by the small script below #}
+        <tr class="status-{{ c.status }}{% if not c.include %} excluded{% endif %}" data-error="{{ 1 if c.has_errors else 0 }}">
+          <td><input type="checkbox" name="include" value="{{ c.row }}" {% if c.include %}checked{% endif %} aria-label="Include row {{ c.row }}"></td>
+          <td>{{ c.row }}<input type="hidden" name="row" value="{{ c.row }}"></td>
+          {% for name, value in [('first', c.first), ('last', c.last), ('phone', c.phone), ('email', c.email), ('birthday', c.birthday_text)] %}
+            {% set level = c.field_level(name) %}
+            <td><input class="cell {{ level or '' }}" name="{{ name }}" value="{{ value }}" aria-label="{{ name }} for row {{ c.row }}"
+                       {% if level == 'error' %}aria-invalid="true"{% endif %}></td>
+          {% endfor %}
+          <td class="notes small">
+            {% if c.issues %}
+              <ul>{% for issue in c.issues %}<li class="level-{{ issue.level }}">{{ issue.message }}</li>{% endfor %}</ul>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</form>
+
+<script>
+  // the server decides what is valid; this only keeps the page responsive between re-checks
+  const table = document.getElementById("table");
+  const download = document.getElementById("download");
+  const count = document.getElementById("count");
+
+  document.getElementById("only-issues").addEventListener("change", (e) => {
+    table.classList.toggle("only-issues", e.target.checked);
+  });
+
+  table.addEventListener("change", refresh);
+
+  function refresh() {
+    let included = 0, blocked = false;
+    for (const row of table.tBodies[0].rows) {
+      const on = row.querySelector("input[name=include]").checked;
+      row.classList.toggle("excluded", !on);
+      if (on) { included += 1; if (row.dataset.error === "1") blocked = true; }
+    }
+    count.textContent = included;
+    // edits to a row with an error need a re-check before they count as fixed
+    download.disabled = included === 0 || blocked;
+  }
+</script>
+{% endblock %}

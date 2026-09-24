@@ -1,0 +1,46 @@
+from pathlib import Path
+
+from flask import Flask, render_template
+
+from vcfcore import MAX_ROWS
+
+PUBLIC_DIR = Path(__file__).resolve().parent.parent / "public"
+MAX_UPLOAD_MB = 3
+
+
+def create_app(test_config: dict | None = None) -> Flask:
+    # the "app factory" pattern: instead of one global app object, a function builds
+    # and returns a fresh app. tests call it with their own config, and app.py calls
+    # it once for the real server
+    app = Flask(
+        __name__,
+        # files in public/ are served at the site root, e.g. /contacts_template.csv.
+        # on vercel the cdn serves public/ before the request ever reaches flask;
+        # locally flask serves them itself
+        static_folder=str(PUBLIC_DIR),
+        static_url_path="",
+    )
+
+    app.config.update(
+        # flask rejects any request body bigger than this with a 413 error before our
+        # code runs. vercel's own limit is 4.5 MB, so stay under it
+        MAX_CONTENT_LENGTH=MAX_UPLOAD_MB * 1024 * 1024,
+        # werkzeug (the library under flask that parses requests) refuses forms with
+        # more than 1000 fields by default. the review table sends 7 fields per row
+        MAX_FORM_PARTS=MAX_ROWS * 7 + 100,
+    )
+    if test_config:
+        app.config.update(test_config)
+
+    # a blueprint is a named group of routes. registering it attaches its routes to
+    # this app; bigger apps split features into several blueprints
+    from .routes import bp
+    app.register_blueprint(bp)
+
+    # error handlers run when flask raises an http error instead of showing a bare error page
+    @app.errorhandler(413)
+    def too_large(error):
+        message = f"That file is larger than {MAX_UPLOAD_MB} MB. Please upload a smaller file."
+        return render_template("index.html", error=message), 413
+
+    return app

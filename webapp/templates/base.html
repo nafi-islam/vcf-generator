@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>{% block title %}VCF Generator{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <style>
+    main.container { padding-top: 1.5rem; }
+    .muted { color: var(--pico-muted-color); }
+    .small { font-size: 0.85rem; }
+
+    /* review table: every cell is an input that looks like plain text until focused */
+    table.review { font-size: 0.9rem; }
+    table.review td, table.review th { padding: 0.35rem 0.4rem; vertical-align: top; white-space: nowrap; }
+    table.review input.cell {
+      margin: 0; padding: 0.2rem 0.35rem; height: auto; min-width: 7rem;
+      font-size: inherit; background: transparent; border-color: transparent;
+    }
+    table.review input.cell:hover, table.review input.cell:focus { border-color: var(--pico-form-element-border-color); }
+    table.review input.cell.error { border-color: var(--pico-del-color); }
+    table.review input.cell.warning { border-color: #d49a00; }
+    table.review input[type=checkbox] { margin: 0.25rem 0 0; }
+    table.review td.notes { white-space: normal; min-width: 16rem; }
+    table.review ul { margin: 0; padding-left: 1rem; }
+    table.review li { list-style: disc; margin: 0; }
+    tr.status-error > td { background: color-mix(in srgb, var(--pico-del-color) 10%, transparent); }
+    tr.status-warning > td { background: color-mix(in srgb, #d49a00 10%, transparent); }
+    tr.excluded { opacity: 0.5; }
+    .level-error { color: var(--pico-del-color); }
+    .level-warning { color: #b58300; }
+    .level-adjusted { color: var(--pico-muted-color); }
+    .only-issues tr.status-ok, .only-issues tr.status-adjusted { display: none; }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+    .actions button, .actions a[role=button] { margin: 0; width: auto; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    {# child templates fill this block; everything outside it is shared by every page #}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

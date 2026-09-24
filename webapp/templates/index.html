@@ -1,0 +1,48 @@
+{# extends reuses base.html and only replaces its blocks #}
+{% extends "base.html" %}
+
+{% block content %}
+<hgroup>
+  <h1>VCF Generator</h1>
+  <p>Turn a spreadsheet of contacts into one file anyone can import to save them all at once.</p>
+</hgroup>
+
+{% if error %}
+  <article>
+    <strong class="level-error">This file could not be used.</strong>
+    <p>{{ error }}</p>
+    <p class="small muted">Fix the spreadsheet and upload it again.</p>
+  </article>
+{% endif %}
+
+<article>
+  {# enctype="multipart/form-data" is required for file uploads; without it the
+     browser only sends the file name and request.files stays empty #}
+  <form action="{{ url_for('converter.review') }}" method="post" enctype="multipart/form-data">
+    <label for="file">Spreadsheet (.xlsx or .csv)</label>
+    <input type="file" id="file" name="file" accept=".xlsx,.csv" required>
+    <button type="submit">Review contacts</button>
+  </form>
+  <p class="small muted">
+    Nothing is converted yet. You will see every contact and any problems first.
+    Files are read in memory and never stored.
+  </p>
+</article>
+
+<section>
+  <h2>What the sheet needs</h2>
+  <ul>
+    <li><strong>Name</strong> (required), or <strong>First Name</strong> and <strong>Last Name</strong> columns</li>
+    <li><strong>Phone Number</strong>: any format; numbers without a country code are treated as US</li>
+    <li><strong>Email</strong></li>
+    <li><strong>Birthday</strong>: with or without a year, such as 15-Mar, Mar 15, or 03/15/2002</li>
+  </ul>
+  <p>Similar names like Mobile, E-mail, or DOB work too. Other columns are ignored.</p>
+  <p>
+    Start from a template:
+    {# url_for('static', ...) builds the url of a file in the static folder, here public/ #}
+    <a href="{{ url_for('static', filename='contacts_template.xlsx') }}">Excel template</a> ·
+    <a href="{{ url_for('static', filename='contacts_template.csv') }}">CSV template</a>
+  </p>
+</section>
+{% endblock %}
