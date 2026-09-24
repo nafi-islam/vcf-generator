@@ -3,7 +3,7 @@
 
 {% block content %}
 <hgroup>
-  <h1>VCF Generator</h1>
+  <h1>Contact Card Generator</h1>
   <p>Turn a spreadsheet of contacts into one file anyone can import to save them all at once!</p>
 </hgroup>
 
@@ -35,7 +35,7 @@
     The first row should be column headers, with one contact per row below it.
     The easiest way to start is a template:
     {# url_for('static', ...) builds the url of a file in the static folder, here public/ #}
-    <a href="{{ url_for('static', filename='contacts_template.xlsx') }}">Excel template</a> ·
+    <a href="{{ url_for('static', filename='contacts_template.xlsx') }}">Excel template</a> or
     <a href="{{ url_for('static', filename='contacts_template.csv') }}">CSV template</a>
   </p>
 
@@ -46,38 +46,37 @@
     <tbody>
       <tr>
         <td>
-          <strong>Name</strong> <mark>Required</mark>
+          <span class="field"><strong>Name</strong> <mark>Required</mark></span>
           <div class="small muted">or First Name + Last Name</div>
         </td>
-        <td>Full name, like <code>Jordan Rivera</code></td>
+        <td>Full name, like <code>Nafi Islam</code></td>
       </tr>
       <tr>
         <td>
-          <strong>Phone Number</strong> <span class="small muted">Optional</span>
+          <span class="field"><strong>Phone Number</strong> <mark>Required</mark></span>
           <div class="small muted">or Phone, Mobile, Cell</div>
         </td>
-        <td>Any format, like <code>(212) 555-0101</code> or <code>212.555.0101</code>. Without a country code, numbers are treated as US.</td>
+        <td>Any format, like <code>123 456 7890</code> or <code>(123) 456-7890</code>. Without a country code, numbers are treated as US.</td>
       </tr>
       <tr>
         <td>
-          <strong>Email</strong> <span class="small muted">Optional</span>
+          <span class="field"><strong>Email</strong> <span class="tag">Optional</span></span>
           <div class="small muted">or E-mail, Email Address</div>
         </td>
-        <td><code>jordan@example.com</code></td>
+        <td><code>nafi@example.com</code></td>
       </tr>
       <tr>
         <td>
-          <strong>Birthday</strong> <span class="small muted">Optional</span>
+          <span class="field"><strong>Birthday</strong> <span class="tag">Optional</span></span>
           <div class="small muted">or DOB, Birth Date</div>
         </td>
-        <td>With or without a year, like <code>Mar 15</code>, <code>15-Mar</code>, <code>3/15</code>, or <code>03/15/2002</code></td>
+        <td>With or without a year, like <span class="nowrap"><code>July 15</code>,</span> <span class="nowrap"><code>15-Jul</code>,</span> <span class="nowrap"><code>7/15</code>,</span> or <code>07/15/2002</code></td>
       </tr>
     </tbody>
   </table>
 
   <ul class="small">
-    <li>Each contact needs a name plus a phone number or email to be useful.</li>
-    <li>Other columns, like Instagram, are ignored.</li>
+    <li>Other columns, like Instagram, Venmo, or Notes, are ignored.</li>
     {# max_upload_mb and max_rows come from the context processor in create_app #}
     <li>Accepts .xlsx or .csv, up to {{ max_upload_mb }} MB and {{ "{:,}".format(max_rows) }} contacts. Only the first sheet of an Excel file is read.</li>
   </ul>

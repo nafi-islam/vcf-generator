@@ -34,18 +34,23 @@ def normalize_header(text) -> str:
 
 
 def find_columns(rows: Rows) -> ColumnMap:
-    """Pick the first row that looks like a header and map its columns to fields."""
+    """Pick the first row that looks like a header and map its columns to fields.
+
+    Name and Phone Number are required columns.
+    """
     for number, cells in rows[:HEADER_SEARCH_ROWS]:
         mapping = _map(number, cells)
         if "name" in mapping.index or "first" in mapping.index:
+            if "phone" not in mapping.index:
+                raise TableError(f"Could not find a Phone Number column. {_found(cells)}")
             return mapping
 
-    found = [str(c).strip() for c in rows[0][1] if str(c or "").strip()]
-    raise TableError(
-        "Could not find a Name column (or First Name and Last Name columns). "
-        f"Columns found: {', '.join(found) or 'none'}. "
-        "Rename the column or start from the template."
-    )
+    raise TableError(f"Could not find a Name column (or First Name and Last Name columns). {_found(rows[0][1])}")
+
+
+def _found(cells) -> str:
+    names = [str(c).strip() for c in cells if str(c or "").strip()]
+    return f"Columns found: {', '.join(names) or 'none'}. Rename the column or start from the template."
 
 
 def _map(number: int, cells) -> ColumnMap:

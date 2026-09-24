@@ -40,7 +40,7 @@ def test_csv_with_excel_bom_and_semicolons():
 
 
 def test_csv_in_windows_encoding():
-    data = make_csv([["Name"], ["José Núñez"]], encoding="cp1252")
+    data = make_csv([["Name", "Phone"], ["José Núñez", "212-555-0103"]], encoding="cp1252")
     contacts, _ = load_contacts(data, "c.csv")
     assert contacts[0].full_name == "José Núñez"
 
@@ -58,6 +58,7 @@ def test_title_row_above_header_and_header_aliases():
     ("c.csv", b"", "empty"),
     ("c.xlsx", b"not a zip", "could not be opened"),
     ("c.csv", b"Phone,Email\n212-555-0103,a@b.co\n", "Could not find a Name column"),
+    ("c.csv", b"Name,Email\nSam Lee,a@b.co\n", "Could not find a Phone Number column"),
     ("c.csv", b"Name,Phone\n", "no contacts"),
 ])
 def test_file_level_errors(filename, data, message):
@@ -66,7 +67,7 @@ def test_file_level_errors(filename, data, message):
 
 
 def test_row_limit():
-    rows = [["Name"]] + [[f"Person {i}"] for i in range(2001)]
+    rows = [["Name", "Phone"]] + [[f"Person {i}", ""] for i in range(2001)]
     with pytest.raises(TableError, match="more than 2000"):
         load_contacts(make_csv(rows), "c.csv")
 
@@ -106,9 +107,9 @@ def test_unrecognized_birthday_is_an_error_that_keeps_the_text():
     assert contact.birthday_text == "sometime in march"
 
 
-def test_name_only_contact_gets_a_warning():
-    [contact] = clean([record()])
-    assert levels(contact) == [(WARNING, None)]
+def test_blank_phone_is_an_error():
+    [contact] = clean([record(email="sam@example.com")])
+    assert levels(contact) == [(ERROR, "phone")]
 
 
 def test_duplicates_are_flagged_on_the_later_row():
@@ -129,6 +130,10 @@ def test_edited_values_round_trip_without_new_issues():
     ("Mar 15", MonthDay(3, 15)),
     ("march 15", MonthDay(3, 15)),
     ("3/15", MonthDay(3, 15)),
+    ("July 15", MonthDay(7, 15)),
+    ("15-Jul", MonthDay(7, 15)),
+    ("7/15", MonthDay(7, 15)),
+    ("07/15/2002", date(2002, 7, 15)),
     ("29-Feb", MonthDay(2, 29)),
     ("2002-03-15", date(2002, 3, 15)),
     ("03/15/2002", date(2002, 3, 15)),
@@ -147,7 +152,7 @@ def test_parse_birthday(text, expected):
 def test_build_vcf():
     contacts = clean([
         record(phone="212-555-0103", email="Sam@Example.COM", birthday="Mar 15"),
-        record(row=3, first="Ana", last="de la Cruz", birthday="2002-03-15"),
+        record(row=3, first="Ana", last="de la Cruz", phone="212-555-0104", birthday="2002-03-15"),
     ])
     text = build_vcf(contacts)
     assert text.count("BEGIN:VCARD") == 2

@@ -79,11 +79,11 @@ def _clean_one(record: dict) -> Contact:
         contact.add(ERROR, "Name is blank.", "first")
 
     contact.phone = _clean_phone(record.get("phone"), contact)
+    if not contact.phone:
+        contact.add(ERROR, "Phone number is blank.", "phone")
+
     contact.email = _clean_email(record.get("email"), contact)
     contact.birthday, contact.birthday_text = _clean_birthday(record.get("birthday"), contact)
-
-    if contact.full_name and not contact.phone and not contact.email:
-        contact.add(WARNING, "No phone or email, so the contact will only have a name.")
     return contact
 
 

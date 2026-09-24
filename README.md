@@ -1,4 +1,4 @@
-# VCF Generator 📞
+# Contact Card Generator 📞
 
 ## Inspiration
 
@@ -10,7 +10,7 @@ Upload a spreadsheet (`.xlsx` or `.csv`) of contacts and get back one `.vcf` fil
 
 Before anything is converted, the app shows every contact in a review table:
 
-- **Problems that block the download** (a blank name, a birthday it cannot read) are highlighted. Fix them right in the table and click Re-check, or untick the row to leave it out. Nothing is dropped unless you choose to drop it.
+- **Problems that block the download** (a blank name or phone number, a birthday it cannot read) are highlighted. Fix them right in the table and click Re-check, or untick the row to leave it out. Nothing is dropped unless you choose to drop it.
 - **Warnings** (a phone that does not look valid, a possible duplicate) are shown but kept as typed.
 - **Automatic fixes** (a phone Excel stored as `2125550123.0`) are noted.
 
@@ -21,7 +21,7 @@ Files are read in memory and never stored.
 | Column | Notes |
 | --- | --- |
 | `Name` (required) | Or separate `First Name` and `Last Name` columns. A single name is split into first word and the rest, like the original script. |
-| `Phone Number` | Any format. Numbers without a country code are treated as US. |
+| `Phone Number` (required) | Any format. Numbers without a country code are treated as US. |
 | `Email` | |
 | `Birthday` | With or without a year: `15-Mar`, `Mar 15`, `03/15/2002`, or an Excel date. |
 

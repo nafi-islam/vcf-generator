@@ -72,4 +72,4 @@ class Contact:
 
 
 class TableError(Exception):
-    """A problem with the whole file, such as an unreadable file or a missing Name column."""
+    """A problem with the whole file, such as an unreadable file or a missing Name or Phone Number column."""
