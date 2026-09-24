@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Review contacts - VCF Generator{% endblock %}
+{% block title %}Review Contacts - VCF Generator{% endblock %}
 {% block container %}container-fluid{% endblock %}
 
 {% block content %}
 <hgroup>
-  <h1>Review contacts</h1>
+  <h1>Review Contacts</h1>
   <p>
     {{ contacts|length }} contact{{ '' if contacts|length == 1 else 's' }} found{% if source %} in <strong>{{ source }}</strong>{% endif %}.
     {{ issue_count }} row{{ '' if issue_count == 1 else 's' }} with notes.

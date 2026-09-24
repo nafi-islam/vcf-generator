@@ -37,6 +37,12 @@ def create_app(test_config: dict | None = None) -> Flask:
     from .routes import bp
     app.register_blueprint(bp)
 
+    # a context processor adds variables to every template, so the upload page can
+    # show the real limits no matter which route renders it
+    @app.context_processor
+    def limits():
+        return {"max_upload_mb": MAX_UPLOAD_MB, "max_rows": MAX_ROWS}
+
     # error handlers run when flask raises an http error instead of showing a bare error page
     @app.errorhandler(413)
     def too_large(error):

@@ -41,7 +41,7 @@ def test_templates_are_served(client):
 def test_upload_shows_every_contact_before_converting(client):
     response = upload(client, make_xlsx(SAMPLE), "club.xlsx")
     assert response.status_code == 200
-    assert b"Review contacts" in response.data
+    assert b"Review Contacts" in response.data
     assert b'value="Kobe"' in response.data and b'value="Luka"' in response.data
     assert b"Ignored columns: Instagram" in response.data
     assert b"disabled" not in response.data.split(b'id="download"')[1].split(b">")[0]
