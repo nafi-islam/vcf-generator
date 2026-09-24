@@ -162,3 +162,23 @@ def test_build_vcf():
     assert "BDAY;X-APPLE-OMIT-YEAR=1604:1604-03-15" in text
     assert "N:de la Cruz;Ana;;;" in text
     assert "BDAY:2002-03-15" in text
+
+
+@pytest.mark.parametrize("text", [
+    "212-555-0123", "(212)-555-0123", "(212) 555-0123", "(212)555-0123", "212.555.0123", "212 555 0123",
+    "2125550123", "1-212-555-0123", "1 (212) 555-0123", "+1 212 555 0123", "+12125550123", "212/555-0123",
+    "212 - 555 - 0123", "  212-555-0123  ", "Tel: 212-555-0123", "212–555–0123",
+])
+def test_common_us_phone_formats(text):
+    [contact] = clean([record(phone=text)])
+    assert contact.phone == "+1 212-555-0123"
+    assert contact.issues == []
+
+
+@pytest.mark.parametrize("text, expected", [
+    ("212-555-0123 x5", "+1 212-555-0123 ext. 5"),
+    ("+44 20 7946 0958", "+44 20 7946 0958"),
+])
+def test_extensions_and_international_phones(text, expected):
+    [contact] = clean([record(phone=text)])
+    assert contact.phone == expected

@@ -1,6 +1,10 @@
+from datetime import date, timedelta
+
 import pytest
 
-from webapp import create_app
+from vcfcore import MonthDay
+from vcfcore.validate import parse_birthday
+from webapp import birthday_examples, create_app
 
 from .helpers import SAMPLE, make_csv, make_xlsx
 
@@ -111,3 +115,21 @@ def test_largest_allowed_table_fits_form_limits(client):
     response = client.post("/download", data=table_form(rows))
     assert response.status_code == 200
     assert response.get_data(as_text=True).count("BEGIN:VCARD") == 2000
+
+
+def test_birthday_examples_are_always_accepted_formats():
+    day = date(2024, 1, 1)  # a leap year, so Feb 29 is covered
+    while day.year == 2024:
+        examples = birthday_examples(day)
+        for text in examples[:3]:
+            assert parse_birthday(text) == MonthDay(day.month, day.day), text
+        assert parse_birthday(examples[3]).timetuple()[1:3] == (day.month, day.day)
+        day += timedelta(days=1)
+    assert birthday_examples(date(2026, 9, 24)) == ["September 24", "24-Sep", "9/24", "9/24/2003"]
+    assert birthday_examples(date(2024, 2, 29))[3] == "2/29/2004"
+
+
+def test_upload_page_shows_todays_birthday_examples(client):
+    page = client.get("/").get_data(as_text=True)
+    for example in birthday_examples(date.today()):
+        assert f">{example}</code>" in page

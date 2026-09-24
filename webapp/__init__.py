@@ -1,3 +1,4 @@
+from datetime import date
 from pathlib import Path
 
 from flask import Flask, render_template
@@ -40,8 +41,12 @@ def create_app(test_config: dict | None = None) -> Flask:
     # a context processor adds variables to every template, so the upload page can
     # show the real limits no matter which route renders it
     @app.context_processor
-    def limits():
-        return {"max_upload_mb": MAX_UPLOAD_MB, "max_rows": MAX_ROWS}
+    def page_values():
+        return {
+            "max_upload_mb": MAX_UPLOAD_MB,
+            "max_rows": MAX_ROWS,
+            "birthday_examples": birthday_examples(date.today()),
+        }
 
     # error handlers run when flask raises an http error instead of showing a bare error page
     @app.errorhandler(413)
@@ -50,3 +55,17 @@ def create_app(test_config: dict | None = None) -> Flask:
         return render_template("index.html", error=message), 413
 
     return app
+
+
+def birthday_examples(day: date) -> list[str]:
+    """Today's date in each birthday format we accept, a small easter egg on the upload page.
+
+    The page script redoes this with the visitor's own date, since the server may be in another time zone.
+    """
+    year = 2004 if (day.month, day.day) == (2, 29) else 2003  # 2003 had no Feb 29
+    return [
+        f"{day:%B} {day.day}",
+        f"{day.day}-{day:%b}",
+        f"{day.month}/{day.day}",
+        f"{day.month}/{day.day}/{year}",
+    ]
